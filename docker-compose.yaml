@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${APP_STORAGE_PATH}/postgres/data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  apps:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apps
+    image: apps
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${APP_STORAGE_PATH}/logs:/app/gandiwa/logs
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
